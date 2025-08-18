@@ -1,0 +1,5 @@
+# Ignore screening PDF
+/Software Engineer Screening Task.pdf
+
+# Ignore backend venv
+/backend/venv
