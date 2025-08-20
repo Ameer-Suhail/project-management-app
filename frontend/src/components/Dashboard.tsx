@@ -24,6 +24,7 @@ const Dashboard = () => {
     fetchPolicy: 'no-cache',
   });
   const [editingProject, setEditingProject] = useState<any>(null);
+  const [showCreateProject, setShowCreateProject] = useState(false);
 
   if (error) return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -56,18 +57,20 @@ const Dashboard = () => {
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-12">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Project Dashboard
+              <h1 className="flex items-baseline gap-2 flex-wrap text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <span>Project Dashboard</span>
+                <span className="text-gray-600 text-2xl md:text-3xl font-semibold">({data?.projects?.length || 0})</span>
               </h1>
-              <p className="text-gray-600 mt-2 text-lg">Manage your projects and track progress</p>
             </div>
-            <div className="hidden md:flex items-center space-x-4">
-              <div className="bg-white rounded-xl px-4 py-2 shadow-sm border">
-                <span className="text-sm text-gray-500">Total Projects</span>
-                <p className="text-2xl font-bold text-gray-900">{data?.projects?.length || 0}</p>
-              </div>
+            <div className="flex items-center">
+              <button
+                onClick={() => setShowCreateProject(true)}
+                className="px-3 py-2 text-sm sm:text-base sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-semibold shadow"
+              >
+                + Add Project
+              </button>
             </div>
           </div>
         </div>
@@ -175,7 +178,21 @@ const Dashboard = () => {
           </div>
           
           <div className="lg:col-span-1">
-            <CreateProjectForm onProjectCreated={refetch} />
+            {showCreateProject && (
+              <div className="bg-white rounded-2xl shadow-sm border p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">New Project</h3>
+                  <button
+                    onClick={() => setShowCreateProject(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                    aria-label="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <CreateProjectForm onProjectCreated={() => { setShowCreateProject(false); refetch(); }} />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -192,7 +209,7 @@ const Dashboard = () => {
       )}
 
      
-      <div className="container mx-auto px-6 py-6">
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2">
         <div className="text-center text-sm text-gray-600">
           <Link to="/change-organization" className="text-blue-600 hover:text-blue-700 underline">
             Change Organization

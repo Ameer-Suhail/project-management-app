@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import CreateTaskForm from './CreateTaskForm';
 import AddCommentForm from './AddCommentForm';
+import EditProjectForm from './EditProjectForm';
 
 const GET_PROJECT_DETAILS = gql`
   query GetProjectDetails($id: ID!) {
@@ -70,7 +71,9 @@ const ProjectPage = () => {
   const [updateTask] = useMutation(UPDATE_TASK);
   const [deleteTask] = useMutation(DELETE_TASK);
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
+  const [showCreateTask, setShowCreateTask] = useState(false);
   const [editValues, setEditValues] = useState<Record<string, { title: string; description: string; assigneeEmail: string; status: string }>>({});
+  const [showEditProject, setShowEditProject] = useState(false);
 
   if (loading) return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
@@ -126,10 +129,16 @@ const ProjectPage = () => {
     }
   };
 
+  const truncate = (str: string | null | undefined, n: number) => {
+    const s = str ?? '';
+    if (!s) return '';
+    return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  };
+
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-x-hidden">
       <div className="container mx-auto px-6 py-8">
         {/* Breadcrumb */}
         <nav className="mb-8">
@@ -137,11 +146,30 @@ const ProjectPage = () => {
         </nav>
 
         {/* Project Header */}
-        <div className="bg-white rounded-2xl shadow-sm border p-8 mb-8">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">{project.name}</h1>
-              <p className="text-lg text-gray-600 mb-4">{project.description || 'No description provided'}</p>
+        <div className="bg-white rounded-2xl shadow-sm border p-6 sm:p-8 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{project.name}</h1>
+              <div className="text-gray-600 mb-4">
+                <span
+                  className="sm:hidden text-sm"
+                  title={project.description || 'No description provided'}
+                >
+                  {truncate(project.description || 'No description provided', 80)}
+                </span>
+                <span
+                  className="hidden sm:inline md:hidden text-base"
+                  title={project.description || 'No description provided'}
+                >
+                  {truncate(project.description || 'No description provided', 120)}
+                </span>
+                <span
+                  className="hidden md:inline text-lg"
+                  title={project.description || 'No description provided'}
+                >
+                  {truncate(project.description || 'No description provided', 180)}
+                </span>
+              </div>
               
               <div className="flex items-center space-x-6 text-sm">
                 {project.dueDate && (
@@ -160,27 +188,84 @@ const ProjectPage = () => {
                 </div>
               </div>
             </div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={() => setShowEditProject(true)}
+                title="Edit Project"
+                className="px-3 py-2 text-sm sm:text-base sm:px-4 sm:py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 font-semibold shadow-sm flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span className="hidden sm:inline">Edit</span>
+              </button>
+              <button
+                onClick={() => setShowCreateTask(true)}
+                className="px-3 py-2 text-sm sm:text-base sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-semibold shadow"
+              >
+                + Add Task
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-4">
-          <div className="lg:col-span-3">
+        <div>
+          <div>
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Tasks</h2>
               <p className="text-gray-600">Manage and track your project tasks</p>
             </div>
+            {showCreateTask && (
+              <div className="bg-white rounded-2xl shadow-sm border p-4 mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">New Task</h3>
+                  <button
+                    onClick={() => setShowCreateTask(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                    aria-label="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
+                {projectId && (
+                  <CreateTaskForm
+                    projectId={projectId}
+                    onTaskCreated={() => { setShowCreateTask(false); refetch(); }}
+                  />
+                )}
+              </div>
+            )}
             
             {project.tasks.length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
                 {project.tasks.map((task: any) => (
-                  <div key={task.id} className="bg-white rounded-2xl shadow-sm border hover:shadow-md transition-all duration-200">
+                  <div key={task.id} className="bg-white rounded-2xl shadow-sm border hover:shadow-md transition-all duration-200 h-full">
                     <div className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-start space-x-4 flex-1">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
+                        <div className="flex items-start space-x-4 flex-1 min-w-0">
                           
                           <div className="flex-1">
                             <h3 className="text-xl font-bold text-gray-900 mb-2">{task.title}</h3>
-                            <p className="text-gray-600 mb-3">{task.description || 'No description provided'}</p>
+                            <div className="text-gray-600 mb-3">
+                              <span
+                                className="sm:hidden text-sm"
+                                title={task.description || 'No description provided'}
+                              >
+                                {truncate(task.description || 'No description provided', 80)}
+                              </span>
+                              <span
+                                className="hidden sm:inline md:hidden text-base"
+                                title={task.description || 'No description provided'}
+                              >
+                                {truncate(task.description || 'No description provided', 120)}
+                              </span>
+                              <span
+                                className="hidden md:inline text-base md:text-lg"
+                                title={task.description || 'No description provided'}
+                              >
+                                {truncate(task.description || 'No description provided', 160)}
+                              </span>
+                            </div>
                             
                             <div className="flex items-center space-x-4 mb-4">
                               <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getTaskStatusColor(task.status)}`}>
@@ -198,23 +283,23 @@ const ProjectPage = () => {
                           </div>
                         </div>
                         
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
                           <select
                             value={task.status}
                             onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-medium bg-white"
+                            className="w-28 sm:w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-medium bg-white"
                           >
                             <option value="TODO">To Do</option>
                             <option value="IN_PROGRESS">In Progress</option>
                             <option value="DONE">Done</option>
                           </select>
-                          
                           <button
                             onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            title="Edit Task"
+                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                           >
-                            <svg className={`w-5 h-5 transform transition-transform ${expandedTask === task.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </button>
                         </div>
@@ -348,12 +433,15 @@ const ProjectPage = () => {
               </div>
             )}
           </div>
-          
-          <div className="lg:col-span-1">
-            {projectId && <CreateTaskForm projectId={projectId} onTaskCreated={refetch} />}
-          </div>
         </div>
       </div>
+      {showEditProject && (
+        <EditProjectForm
+          project={project}
+          onProjectUpdated={() => { setShowEditProject(false); refetch(); }}
+          onCancel={() => setShowEditProject(false)}
+        />
+      )}
     </div>
   );
 };
