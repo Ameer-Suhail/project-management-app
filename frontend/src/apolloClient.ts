@@ -8,7 +8,7 @@ const httpLink = createHttpLink({
 const authLink = setContext((_, { headers }) => {
   // For now, we'll hardcode the organization slug. In a real app, this would
   // be dynamic, based on the user's session or selected organization.
-  const organizationSlug = 'default-organization'; // Replace with a dynamic value later
+  const organizationSlug = (typeof window !== 'undefined' && window.localStorage.getItem('orgSlug')) || 'default-organization';
 
   return {
     headers: {

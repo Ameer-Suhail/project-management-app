@@ -160,6 +160,39 @@ class AddCommentToTask(graphene.Mutation):
         return AddCommentToTask(comment=comment)
 
 
+class UpdateProject(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID(required=True)
+        name = graphene.String()
+        description = graphene.String()
+        status = graphene.String()
+        due_date = graphene.Date()
+
+    project = graphene.Field(lambda: ProjectType)
+
+    def mutate(self, info, id, name=None, description=None, status=None, due_date=None):
+        organization = info.context.organization
+        if not organization:
+            raise Exception('Organization not found in context')
+
+        try:
+            project = Project.objects.get(pk=id, organization=organization)
+            
+            if name is not None:
+                project.name = name
+            if description is not None:
+                project.description = description
+            if status is not None:
+                project.status = status
+            if due_date is not None:
+                project.due_date = due_date
+            
+            project.save()
+            return UpdateProject(project=project)
+        except Project.DoesNotExist:
+            raise Exception("Project not found")
+
+
 class UpdateTask(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)
@@ -193,12 +226,53 @@ class UpdateTask(graphene.Mutation):
             raise Exception("Task not found")
 
 
+class DeleteProject(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+
+    def mutate(self, info, id):
+        organization = info.context.organization
+        if not organization:
+            raise Exception('Organization not found in context')
+
+        try:
+            project = Project.objects.get(pk=id, organization=organization)
+            project.delete()
+            return DeleteProject(ok=True)
+        except Project.DoesNotExist:
+            raise Exception("Project not found")
+
+
+class DeleteTask(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+
+    def mutate(self, info, id):
+        organization = info.context.organization
+        if not organization:
+            raise Exception('Organization not found in context')
+
+        try:
+            task = Task.objects.get(pk=id, project__organization=organization)
+            task.delete()
+            return DeleteTask(ok=True)
+        except Task.DoesNotExist:
+            raise Exception("Task not found")
+
+
 class Mutation(graphene.ObjectType):
     create_organization = CreateOrganization.Field()
     create_project = CreateProject.Field()
     create_task = CreateTask.Field()
     add_comment_to_task = AddCommentToTask.Field()
+    update_project = UpdateProject.Field()
     update_task = UpdateTask.Field()
+    delete_project = DeleteProject.Field()
+    delete_task = DeleteTask.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

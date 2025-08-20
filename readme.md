@@ -1,4 +1,4 @@
-# VoiceAIWrapper - Project Management System
+# Project Management System
 
 This is a multi-tenant project management system built with a Django/GraphQL backend and a React/TypeScript frontend. It provides organization-based data isolation, allowing different organizations to manage their projects and tasks securely.
 
@@ -40,7 +40,7 @@ This is a multi-tenant project management system built with a Django/GraphQL bac
 1.  **Clone the repository:**
     ```bash
     git clone <repository-url>
-    cd VoiceAIWrapper-task/backend
+    cd VoiceAIWrapper-task/backend  
     ```
 
 2.  **Create and activate a virtual environment:**
