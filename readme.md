@@ -15,13 +15,13 @@ This is a multi-tenant project management system built with a Django/GraphQL bac
 ## Tech Stack
 
 - **Backend:**
-  - Django 4.x
+  - Django 4.2.7
   - Graphene-Django (for GraphQL)
-  - Python 3.10+
+  - Python 3.10.12
   - PostgreSQL
 
 - **Frontend:**
-  - React 18+
+  - React 19.1.1
   - TypeScript
   - Apollo Client (for GraphQL)
   - React Router
@@ -39,8 +39,8 @@ This is a multi-tenant project management system built with a Django/GraphQL bac
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
-    cd VoiceAIWrapper-task/backend  
+    git clone git@github.com:Ameer-Suhail/project-management-app.git
+    cd project-management-app/backend  
     ```
 
 2.  **Create and activate a virtual environment:**
@@ -104,9 +104,6 @@ This is a multi-tenant project management system built with a Django/GraphQL bac
 ## How to Use
 
 1.  Once both the backend and frontend servers are running, open your browser to `http://localhost:3000`.
-2.  You will see the project dashboard for the default organization (`default-org`).
-3.  You can create new projects, click on a project to view its tasks, add new tasks, change task statuses, and add comments.
+2.  You can create new projects, click on a project to view its tasks, add new tasks, change task statuses, and add comments.
 
-## API Communication
 
-The frontend communicates with the backend via GraphQL. For multi-tenancy to work, every API request must include the `X-Organization-Slug` header. The Apollo Client is configured to send `default-org` with each request.
